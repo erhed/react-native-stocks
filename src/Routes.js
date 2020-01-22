@@ -1,13 +1,13 @@
-import { createStackNavigator, createSwitchNavigator } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
-import StartScreen from '../src/screens/HomeScreen';
+import HomeScreen from '../src/screens/HomeScreen';
 
 const AppNavigator = createStackNavigator(
   {
     HomeScreen: {
       screen: HomeScreen,
       navigationOptions: {
-        header: null
+        headerShown: false
       }
     },
   },
