@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#CCCCCC',
   },
   text: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '300',
   }
 });
