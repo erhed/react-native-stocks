@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button } from 'react-native';
+import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button, StatusBar } from 'react-native';
 import ListItem from '../components/ListItem/ListItem';
-import {  } from 'react-native-gesture-handler';
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -51,18 +50,29 @@ export default class HomeScreen extends Component {
     this.setState({ searchText: text });
 
     if (text === '') {
-      this.setState({ headerText: 'Favourites', listData: this.listData, showEditButton: true });
+      this.setListMode('Favourites');
       Keyboard.dismiss();
     } else {
-      this.setState({ searchText: text, headerText: 'Search', listData: this.listData2, showEditButton: false });
+      this.setListMode('Search', text);
     }
   }
 
   onInputBlur = () => {
-    this.setState({ searchText: '', headerText: 'Favourites', listData: this.listData, showEditButton: true });
+    this.setListMode('Favourites');
   }
 
-  editButtonPressed = () => {
+  setListMode = (mode, text) => {
+    if (mode === 'Favourites') {
+      this.setState({ searchText: '', headerText: 'Favourites', listData: this.listData, showEditButton: true });
+    } else if (mode === 'Search') {
+      this.setState({ searchText: text, headerText: 'Search', listData: this.listData2, showEditButton: false });
+      if (this.state.isEditModeEnabled) {
+        this.toggleEditMode();
+      }
+    }
+  }
+
+  toggleEditMode = () => {
     this.setState({ isEditModeEnabled: !this.state.isEditModeEnabled });
     if (!this.state.isEditModeEnabled) {
       this.setState({ editButtonText: 'Done' });
@@ -71,15 +81,20 @@ export default class HomeScreen extends Component {
     }
   }
 
+  deleteFavourite = index => {
+    console.warn(index);
+  }
+
   render() {
     return (
       <SafeAreaView style={styles.screen}>
-        <View style={styles.logoContainer}>
+        <StatusBar barStyle="dark-content" />
+        {/* <View style={styles.logoContainer}>
           <Image
             style={{ width: 100, height: 37 }}
             source={require('../assets/yahoo-finance-logo.jpg')}
           />
-        </View>
+        </View> */}
         <View style={styles.searchContainer}>
           <TextInput
             value={this.state.searchText}
@@ -95,17 +110,22 @@ export default class HomeScreen extends Component {
             <Text style={styles.listHeader}>{this.state.headerText}</Text>
             <View style={styles.editButtonContainer}>
               {this.state.showEditButton &&
-              <Button 
-                title={this.state.editButtonText} 
-                onPress={() => this.editButtonPressed()} 
-              />}
+                <Button
+                  title={this.state.editButtonText}
+                  onPress={() => this.toggleEditMode()}
+                />}
             </View>
           </View>
           <FlatList
             style={styles.list}
             data={this.state.listData}
             extraData={this.state.listData}
-            renderItem={({ item }) => <ListItem text={item.title} removeEnabled={this.state.isEditModeEnabled} />}
+            renderItem={({ item, index }) => <ListItem
+              text={item.title}
+              removeEnabled={this.state.isEditModeEnabled}
+              index={index}
+              onPressDelete={(index) => this.deleteFavourite(index)}
+            />}
             keyExtractor={item => item.id}
           />
         </View>
@@ -122,7 +142,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
     marginBottom: 0,
   },
   searchContainer: {
@@ -143,7 +163,7 @@ const styles = StyleSheet.create({
   listContainer: {
     marginLeft: 30,
     marginRight: 30,
-    marginTop: 8,
+    marginTop: 18,
     flex: 1,
   },
   headerContainer: {
