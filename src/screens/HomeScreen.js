@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList } from 'react-native';
+import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button } from 'react-native';
 import ListItem from '../components/ListItem/ListItem';
+import {  } from 'react-native-gesture-handler';
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -37,23 +38,37 @@ export default class HomeScreen extends Component {
     ];
 
     this.state = {
-      text: 'hej',
+      searchText: '',
       headerText: 'Favourites',
+      isEditModeEnabled: false,
+      showEditButton: true,
+      editButtonText: 'Edit...',
       listData: this.listData
     }
   }
 
   onInputTextChange = text => {
+    this.setState({ searchText: text });
+
     if (text === '') {
-      this.setState({ headerText: 'Favourites', listData: this.listData });
+      this.setState({ headerText: 'Favourites', listData: this.listData, showEditButton: true });
       Keyboard.dismiss();
     } else {
-      this.setState({ headerText: 'Search', listData: this.listData2 });
+      this.setState({ searchText: text, headerText: 'Search', listData: this.listData2, showEditButton: false });
     }
   }
 
   onInputBlur = () => {
+    this.setState({ searchText: '', headerText: 'Favourites', listData: this.listData, showEditButton: true });
+  }
 
+  editButtonPressed = () => {
+    this.setState({ isEditModeEnabled: !this.state.isEditModeEnabled });
+    if (!this.state.isEditModeEnabled) {
+      this.setState({ editButtonText: 'Done' });
+    } else {
+      this.setState({ editButtonText: 'Edit...' });
+    }
   }
 
   render() {
@@ -67,6 +82,7 @@ export default class HomeScreen extends Component {
         </View>
         <View style={styles.searchContainer}>
           <TextInput
+            value={this.state.searchText}
             style={styles.searchTextInput}
             placeholder='Search asset'
             placeholderTextColor='#AAAAAA'
@@ -74,14 +90,22 @@ export default class HomeScreen extends Component {
             onBlur={() => this.onInputBlur()}
             onChangeText={text => this.onInputTextChange(text)} />
         </View>
-        {/* <Text>{this.state.text}</Text> */}
         <View style={styles.listContainer}>
-        <Text style={styles.listHeader}>{this.state.headerText}</Text>
+          <View style={styles.headerContainer}>
+            <Text style={styles.listHeader}>{this.state.headerText}</Text>
+            <View style={styles.editButtonContainer}>
+              {this.state.showEditButton &&
+              <Button 
+                title={this.state.editButtonText} 
+                onPress={() => this.editButtonPressed()} 
+              />}
+            </View>
+          </View>
           <FlatList
             style={styles.list}
             data={this.state.listData}
             extraData={this.state.listData}
-            renderItem={({ item }) => <ListItem text={item.title} />}
+            renderItem={({ item }) => <ListItem text={item.title} removeEnabled={this.state.isEditModeEnabled} />}
             keyExtractor={item => item.id}
           />
         </View>
@@ -102,26 +126,39 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   searchContainer: {
-    margin: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 30,
+    marginRight: 30,
   },
   searchTextInput: {
     backgroundColor: '#FFFFFF',
-    padding: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 3,
     borderBottomColor: 'rgb(126, 31, 255)',
     fontSize: 18,
     fontWeight: '300',
   },
   listContainer: {
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 20,
+    marginLeft: 30,
+    marginRight: 30,
+    marginTop: 8,
     flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end'
   },
   listHeader: {
     fontSize: 30,
     fontWeight: '800',
     marginBottom: 10,
     color: 'rgb(55, 1, 125)',
+    flex: 1,
+  },
+  editButtonContainer: {
+    paddingBottom: 5,
+    right: -8,
   }
 });
