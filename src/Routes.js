@@ -14,11 +14,13 @@ const AppNavigator = createStackNavigator(
     ChartScreen: {
       screen: ChartScreen,
       navigationOptions: {
+        title: '',
         headerShown: true,
         headerStyle: {
-          backgroundColor: 'rgb(55, 1, 125)',
+          backgroundColor: 'rgb(255, 255, 255)',
+          shadowColor: 'transparent',
         },
-        headerTintColor: '#fff',
+        headerBackTitle: 'Back',
       }
     },
   },

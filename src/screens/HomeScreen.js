@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button, StatusBar } from 'react-native';
 import ListItem from '../components/ListItem/ListItem';
+import { searchForAsset } from '../api/Search';
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -8,31 +9,19 @@ export default class HomeScreen extends Component {
 
     this.listData = [
       {
-        title: 'Apple',
-        id: '1'
+        name: 'Apple',
+        id: '1',
+        symbol: 'AAP',
       },
       {
-        title: 'Google',
-        id: '2'
+        name: 'Google',
+        id: '2',
+        symbol: 'ABP',
       },
       {
-        title: 'Microsoft',
-        id: '3'
-      },
-    ];
-
-    this.listData2 = [
-      {
-        title: 'Netflix',
-        id: '1'
-      },
-      {
-        title: 'Exxon',
-        id: '2'
-      },
-      {
-        title: 'Tesla',
-        id: '3'
+        name: 'Microsoft',
+        id: '3',
+        symbol: 'ACP',
       },
     ];
 
@@ -42,11 +31,12 @@ export default class HomeScreen extends Component {
       isEditModeEnabled: false,
       showEditButton: true,
       editButtonText: 'Edit...',
-      listData: this.listData
+      listData: this.listData,
+      showActivityIndicator: false,
     }
   }
 
-  onInputTextChange = text => {
+  onInputTextChange = async text => {
     this.setState({ searchText: text });
 
     if (text === '') {
@@ -54,6 +44,15 @@ export default class HomeScreen extends Component {
       Keyboard.dismiss();
     } else {
       this.setListMode('Search', text);
+      this.setState({ listData: [{ name: 'Enter at least 3 characters', id: 0 }] });
+      if (text.length > 2) {
+        let results = await searchForAsset(text);
+        if (results.status === 'error') {
+          //ERROR HANDLING
+        } else {
+          this.setState({ listData: results });
+        }
+      }
     }
   }
 
@@ -65,7 +64,7 @@ export default class HomeScreen extends Component {
     if (mode === 'Favourites') {
       this.setState({ searchText: '', headerText: 'Favourites', listData: this.listData, showEditButton: true });
     } else if (mode === 'Search') {
-      this.setState({ searchText: text, headerText: 'Search', listData: this.listData2, showEditButton: false });
+      this.setState({ searchText: text, headerText: 'Search', listData: [], showEditButton: false });
       if (this.state.isEditModeEnabled) {
         this.toggleEditMode();
       }
@@ -81,6 +80,17 @@ export default class HomeScreen extends Component {
     }
   }
 
+  onAssetPress = (index, action) => {
+    if (action === 'delete') {
+      this.deleteFavourite(index);
+    } else if (action === 'open') {
+      this.props.navigation.navigate('ChartScreen', { 
+        symbol: this.state.listData[index].symbol,
+        name: this.state.listData[index].name,
+      });
+    }
+  }
+
   deleteFavourite = index => {
     console.warn(index);
   }
@@ -89,12 +99,6 @@ export default class HomeScreen extends Component {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar barStyle="dark-content" />
-        {/* <View style={styles.logoContainer}>
-          <Image
-            style={{ width: 100, height: 37 }}
-            source={require('../assets/yahoo-finance-logo.jpg')}
-          />
-        </View> */}
         <View style={styles.searchContainer}>
           <TextInput
             value={this.state.searchText}
@@ -121,12 +125,13 @@ export default class HomeScreen extends Component {
             data={this.state.listData}
             extraData={this.state.listData}
             renderItem={({ item, index }) => <ListItem
-              text={item.title}
+              text={item.name}
               removeEnabled={this.state.isEditModeEnabled}
               index={index}
-              onPressDelete={(index) => this.deleteFavourite(index)}
+              onPress={(index, action) => this.onAssetPress(index, action)}
             />}
             keyExtractor={item => item.id}
+            keyboardShouldPersistTaps={'always'}
           />
         </View>
       </SafeAreaView>

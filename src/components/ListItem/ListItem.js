@@ -1,15 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
-const ListItem = ({ text, removeEnabled, index, onPressDelete }) => {
+const ListItem = ({ text, removeEnabled, index, onPress }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>{text}</Text>
+      <TouchableOpacity
+        style={styles.textTouchArea}
+        onPress={() => onPress(index, 'open')}>
+        <Text style={styles.text}>{text}</Text>
+      </TouchableOpacity>
       {removeEnabled &&
         <View style={styles.removeContainer}>
-          <TouchableOpacity 
-            style={styles.touchArea}
-            onPress={() => onPressDelete(index)}>
+          <TouchableOpacity
+            style={styles.removeTouchArea}
+            onPress={() => onPress(index, 'delete')}>
             <Image
               style={{ width: 12, height: 12 }}
               source={require('../../assets/delete.png')} />
@@ -30,20 +34,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
   },
+  textTouchArea: {
+    flex: 1,
+  },
   text: {
     fontSize: 18,
     fontWeight: '300',
     flex: 1
   },
   removeContainer: {
-    width: 22,
+    width: 21,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  touchArea: {
-    height: 22,
-    width: 22,
+  removeTouchArea: {
+    height: 21,
+    width: 21,
     justifyContent: 'center',
     alignItems: 'center',
   }
