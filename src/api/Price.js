@@ -28,7 +28,7 @@ export async function getPrices(symbol) {
 
         let responseObject = {
           dates: chartDates,
-          prices: chartDailyClosePrices,
+          prices: chartDailyClosePrices.reverse(),
         }
 
         resolve(responseObject);
