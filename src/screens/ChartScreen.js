@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 40,
-    marginTop: 0,
+    marginTop: 10,
     marginBottom: 20,
     fontWeight: '400',
     color: 'rgb(126, 31, 255)',

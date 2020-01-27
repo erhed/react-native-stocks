@@ -1,4 +1,4 @@
-import { AlphaVantageKey as apiKey } from './Keys';
+import { YahooKey as apiKey } from './Keys';
 
 export async function getInformation(symbol) {
   return new Promise(function (resolve, reject) {
@@ -6,7 +6,7 @@ export async function getInformation(symbol) {
       "method": "GET",
       "headers": {
         "x-rapidapi-host": "apidojo-yahoo-finance-v1.p.rapidapi.com",
-        "x-rapidapi-key": "abde10a14cmsh6524a34d037ff59p11f814jsnd0bb33b5ec29"
+        "x-rapidapi-key": `${apiKey}`,
       }
     })
       .then(response => {
