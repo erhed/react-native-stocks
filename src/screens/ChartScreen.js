@@ -95,7 +95,7 @@ class ChartScreen extends Component {
                     }
                   ]
                 }}
-                width={Dimensions.get("window").width - 36}
+                width={Dimensions.get("window").width - 44}
                 height={220}
                 yAxisLabel=''
                 yAxisSuffix=''
