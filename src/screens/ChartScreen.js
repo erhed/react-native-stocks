@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, StyleSheet, StatusBar, View, Dimensions, ActivityIndicator } from 'react-native';
-import { getPrices } from '../api/Price';
+import { SafeAreaView, Text, StyleSheet, StatusBar, View, Dimensions, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { ScrollView } from 'react-native-gesture-handler';
+import { getPrices } from '../api/Price';
 import { getInformation } from '../api/Information';
+import SimpleButton from '../components/SimpleButton/SimpleButton';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { addFavourite } from '../actions/Favourites';
 
-export default class ChartScreen extends Component {
+class ChartScreen extends Component {
   constructor(props) {
     super(props);
 
@@ -29,17 +32,45 @@ export default class ChartScreen extends Component {
     });
 
     let data = await getPrices(symbol);
-    this.setState({
-      dates: data.dates,
-      prices: data.prices,
-      dataAvailable: true,
-    });
+    if (data.status === 'error') {
+      // TODO: ERROR HANDLING
+    } else {
+      this.setState({
+        dates: data.dates,
+        prices: data.prices,
+        dataAvailable: true,
+      });
+    }
 
     let info = await getInformation(symbol);
-    this.setState({
-      infoAvailable: true,
-      info: info,
+    if (info.status === 'error') {
+      this.setState({
+        infoAvailable: true,
+        info: 'Not available',
+      });
+    } else {
+      this.setState({
+        infoAvailable: true,
+        info: info,
+      });
+    }
+  }
+
+  addToFavourites = () => {
+    this.props.addFavourite({
+      id: this.state.name + '-' + this.state.symbol,
+      name: this.state.name,
+      symbol: this.state.symbol,
     });
+
+    Alert.alert(
+      this.state.name,
+      'Added to favourites',
+      [
+        { text: 'OK' },
+      ],
+      { cancelable: false },
+    );
   }
 
   render() {
@@ -47,8 +78,8 @@ export default class ChartScreen extends Component {
       <SafeAreaView style={styles.screen}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.container}>
-          <ScrollView 
-            style={{flex: 1}}
+          <ScrollView
+            style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}>
             <Text style={styles.headerName}>{this.state.name}</Text>
             <Text style={styles.headerSymbol}>{this.state.symbol}</Text>
@@ -79,8 +110,8 @@ export default class ChartScreen extends Component {
                     borderRadius: 16,
                   },
                   propsForDots: {
-                    r: "3",
-                    strokeWidth: "2",
+                    r: "2",
+                    strokeWidth: "1",
                     stroke: 'rgb(126, 31, 255)',
                   }
                 }}
@@ -90,9 +121,10 @@ export default class ChartScreen extends Component {
                 withOuterLines={false}
                 style={{
                   borderRadius: 16,
-                  left: -12,
+                  left: -4,
                 }}
               />}
+            <SimpleButton onPress={() => this.addToFavourites()} />
             <Text style={styles.infoHeader}>Company information</Text>
             {!this.state.infoAvailable && <View style={styles.activityIndicatorInfoContainer}><ActivityIndicator /></View>}
             {this.state.infoAvailable && <Text style={styles.infoText}>{this.state.info}</Text>}
@@ -102,6 +134,19 @@ export default class ChartScreen extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  const { favourites } = state
+  return { favourites }
+};
+
+const mapDispatchToProps = dispatch => (
+  bindActionCreators({
+    addFavourite,
+  }, dispatch)
+);
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChartScreen);
 
 const styles = StyleSheet.create({
   screen: {
@@ -127,12 +172,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   activityIndicatorDataContainer: {
-    marginBottom: 30,
+    height: 290,
+    paddingTop: 100,
+    backgroundColor: '#FFFFFF'
   },
   price: {
     fontSize: 40,
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 12,
     fontWeight: '400',
     color: 'rgb(126, 31, 255)',
   },
@@ -140,9 +187,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: 'rgb(55, 1, 125)',
+    marginTop: 30,
   },
   activityIndicatorInfoContainer: {
-    marginTop: 30,
+    marginTop: 140,
   },
   infoText: {
     marginTop: 10,

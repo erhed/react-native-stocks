@@ -8,12 +8,8 @@ export async function getPrices(symbol) {
         return resp.json();
       }).then(data => {
         let allDailyPrices = Object.values(data)[1];
-        let latestDailyOCHLPrices = Object.values(allDailyPrices)[0];
-        let latestDailyClosePrice = Object.values(latestDailyOCHLPrices)[3];
-
         let chartDates = [];
         let chartDailyClosePrices = [];
-
         for (let i = 0; i < 20; i++) {
           let dailyOCHLPrices = Object.values(allDailyPrices)[i];
           if (dailyOCHLPrices != undefined) {
@@ -30,7 +26,6 @@ export async function getPrices(symbol) {
           dates: chartDates,
           prices: chartDailyClosePrices.reverse(),
         }
-
         resolve(responseObject);
       })
       .catch(error => {

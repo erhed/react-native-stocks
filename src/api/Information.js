@@ -13,7 +13,6 @@ export async function getInformation(symbol) {
         return response.json();
       })
       .then(json => {
-        //console.warn(json);
         resolve(json.summaryProfile.longBusinessSummary);
       })
       .catch(error => {

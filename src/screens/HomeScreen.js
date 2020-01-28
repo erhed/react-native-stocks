@@ -1,39 +1,60 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button, StatusBar } from 'react-native';
+import { SafeAreaView, Text, TextInput, StyleSheet, View, Image, Keyboard, FlatList, Button, StatusBar, AsyncStorage } from 'react-native';
 import ListItem from '../components/ListItem/ListItem';
 import { searchForAsset } from '../api/Search';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { loadFavourites, removeFavourite } from '../actions/Favourites';
+import { NavigationEvents } from 'react-navigation';
 
-export default class HomeScreen extends Component {
+class HomeScreen extends Component {
   constructor(props) {
     super(props);
-
-    this.listData = [
-      {
-        name: 'Apple',
-        id: '1',
-        symbol: 'AAP',
-      },
-      {
-        name: 'Google',
-        id: '2',
-        symbol: 'ABP',
-      },
-      {
-        name: 'Microsoft',
-        id: '3',
-        symbol: 'ACP',
-      },
-    ];
-
     this.state = {
       searchText: '',
       headerText: 'Favourites',
       isEditModeEnabled: false,
       showEditButton: true,
       editButtonText: 'Edit...',
-      listData: this.listData,
+      listData: [],
       showActivityIndicator: false,
     }
+  }
+
+  async componentDidMount() {
+    await this.loadFavourites();
+  }
+
+  saveFavourites = async () => {
+    try {
+      await AsyncStorage.setItem('favourites', JSON.stringify(this.props.favourites.favourites));
+    } catch (error) {
+      console.warn('error saving favourites');
+    }
+  }
+
+  loadFavourites = async () => {
+    try {
+      let data = await AsyncStorage.getItem('favourites');
+      let favourites = JSON.parse(data);
+      this.props.loadFavourites(favourites);
+    } catch (error) {
+      console.warn('error getting favourites');
+    }
+  }
+
+  updateFavourites = async () => {
+    this.setState({
+      listData: this.props.favourites.favourites,
+    });
+    await this.saveFavourites();
+  }
+
+  removeFavourite = async index => {
+    this.props.removeFavourite(index);
+    await this.saveFavourites().then(async () => {
+      await this.updateFavourites();
+    });
   }
 
   onInputTextChange = async text => {
@@ -48,7 +69,7 @@ export default class HomeScreen extends Component {
       if (text.length > 2) {
         let results = await searchForAsset(text);
         if (results.status === 'error') {
-          //ERROR HANDLING
+          // TODO: ERROR HANDLING
         } else {
           this.setState({ listData: results });
         }
@@ -62,7 +83,7 @@ export default class HomeScreen extends Component {
 
   setListMode = (mode, text) => {
     if (mode === 'Favourites') {
-      this.setState({ searchText: '', headerText: 'Favourites', listData: this.listData, showEditButton: true });
+      this.setState({ searchText: '', headerText: 'Favourites', listData: this.props.favourites.favourites, showEditButton: true });
     } else if (mode === 'Search') {
       this.setState({ searchText: text, headerText: 'Search', listData: [], showEditButton: false });
       if (this.state.isEditModeEnabled) {
@@ -82,23 +103,22 @@ export default class HomeScreen extends Component {
 
   onAssetPress = (index, action) => {
     if (action === 'delete') {
-      this.deleteFavourite(index);
+      this.removeFavourite(index);
     } else if (action === 'open') {
-      this.props.navigation.navigate('ChartScreen', { 
+      this.props.navigation.navigate('ChartScreen', {
         symbol: this.state.listData[index].symbol,
         name: this.state.listData[index].name,
       });
     }
   }
 
-  deleteFavourite = index => {
-    console.warn(index);
-  }
-
   render() {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar barStyle="dark-content" />
+        <NavigationEvents
+          onDidFocus={() => this.updateFavourites()}
+        />
         <View style={styles.searchContainer}>
           <TextInput
             value={this.state.searchText}
@@ -138,6 +158,20 @@ export default class HomeScreen extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  const { favourites } = state
+  return { favourites }
+};
+
+const mapDispatchToProps = dispatch => (
+  bindActionCreators({
+    loadFavourites,
+    removeFavourite
+  }, dispatch)
+);
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
 
 const styles = StyleSheet.create({
   screen: {
